@@ -19,6 +19,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class ExerciseResults extends StatefulWidget {
+  ExerciseResultsState createState() => ExerciseResultsState();
+}
+
+
 class ExerciseResultsState extends State<ExerciseResults> {
   final _suggestions = <WordPair>[];
   final _saved = Set<WordPair>();
@@ -89,62 +94,7 @@ class ExerciseResultsState extends State<ExerciseResults> {
     showDialog(
         context: context,
         builder: (context) {
-          return AlertDialog(
-            title: Text('请选择练习类型'),
-            content: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    IconButton(
-                      icon: Icon(Icons.add, size: 40.0,),
-                      onPressed: () {
-
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.remove, size: 40.0,),
-                      onPressed: () {
-
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.clear, size: 40.0,),
-                      onPressed: () {
-
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.vertical_align_center, size: 40.0,),
-                      onPressed: () {
-
-                      },
-                    ),
-                  ],
-                ),
-                Row(
-
-                )
-              ],
-            ),
-            actions: <Widget>[
-              FlatButton(
-                onPressed: () {
-
-                },
-                child: Text('确认'),
-              ),
-              FlatButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('取消'),
-              )
-            ],
-          );
+          return _MyDialog();
         },
     );
   }
@@ -173,6 +123,97 @@ class ExerciseResultsState extends State<ExerciseResults> {
   }
 }
 
-class ExerciseResults extends StatefulWidget {
-  ExerciseResultsState createState() => ExerciseResultsState();
+class _MyDialog extends StatefulWidget {
+
+  @override
+  _MyDialogState createState() => _MyDialogState();
+}
+
+class _MyDialogState extends State<_MyDialog> {
+  int _choose = 0;
+  int _number = 30;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('请选择练习类型'),
+      content: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              IconButton(
+                icon: Icon(Icons.add, size: 40.0,),
+                color: _choose == 1 ? Colors.blue : null,
+                onPressed: () {
+                  setState(() {
+                    _choose = 1;
+                  });
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.remove, size: 40.0,),
+                color: _choose == 2 ? Colors.blue : null,
+                onPressed: () {
+                  setState(() {
+                    _choose = 2;
+                  });
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.clear, size: 40.0,),
+                color: _choose == 3 ? Colors.blue : null,
+                onPressed: () {
+                  setState(() {
+                    _choose = 3;
+                  });
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.vertical_align_center, size: 40.0,),
+                color: _choose == 4 ? Colors.blue : null,
+                onPressed: () {
+                  setState(() {
+                    _choose = 4;
+                  });
+                },
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8.0, 16.0, 8.0, 0),
+            child: Text('题目数量: $_number'),
+          ),
+          Slider(
+            value: _number.toDouble(),
+            onChanged: (newValue) {
+              setState(() {
+                _number = newValue.toInt();
+              });
+            },
+            min: 1.0,
+            max: 50.0,
+          )
+        ],
+      ),
+      actions: <Widget>[
+        FlatButton(
+          onPressed: () {
+            
+          },
+          child: Text('确认'),
+        ),
+        FlatButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: Text('取消'),
+        )
+      ],
+    );
+  }
+
 }
