@@ -3,6 +3,8 @@
 // found in the LICENSE file.
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
+import 'package:flutter/material.dart' as prefix0;
+import 'package:kids_learning/Exercise.dart';
 
 void main() => runApp(MyApp());
 
@@ -66,7 +68,7 @@ class ExerciseResultsState extends State<ExerciseResults> {
     );
   }
 
-  void _pushSaved() {
+  void _pushSaved() { // todo: del
     Navigator.of(context)
         .push(MaterialPageRoute<void>(builder: (BuildContext context) {
       final Iterable<ListTile> tiles = _saved.map((WordPair pair) {
@@ -202,7 +204,10 @@ class _MyDialogState extends State<_MyDialog> {
       actions: <Widget>[
         FlatButton(
           onPressed: () {
-            
+            prefix0.Navigator.of(context).pop();
+            Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => ExerciseMode(_choose, _number),
+            ));
           },
           child: Text('确认'),
         ),
