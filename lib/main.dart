@@ -2,74 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import 'package:flutter/material.dart';
+import 'package:kids_learning/Database.dart';
 import 'package:kids_learning/Exercise.dart';
+import 'package:kids_learning/Generator.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 import 'Result.dart';
 
 void main() async {
-  _initDatabase();
-
   runApp(MyApp());
 }
 
-void _initDatabase() async {
-  final Future<Database> database = openDatabase(
-    join(await getDatabasesPath(), 'results.db'),
-    onCreate: (db, version) {
-      return db.execute(
-          "CREATE TABLE grades(id INTEGER PRIMARY KEY, right INTEGER, wrong INTEGER, milliseconds_since_epoch INTEGER)");
-    },
-    version: 1,
-  );
-
-  Future<void> insertResult(Grade result) async {
-    final Database db = await database;
-
-    await db.insert(
-      'grades',
-      result.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-  Future<List<Grade>> grades() async {
-    final Database db = await database;
-
-    final List<Map<String, dynamic>> maps = await db.query('grades');
-
-    return List.generate(maps.length, (i) {
-      return Grade(
-        id: maps[i]['id'],
-        right: maps[i]['right'],
-        wrong: maps[i]['wrong'],
-        millisecondsSinceEpoch: maps[i]['milliseconds_since_epoch'],
-      );
-    });
-  }
-
-  Future<void> updateGrade(Grade grade) async {
-    final db = await database;
-
-    await db.update(
-      'grades',
-      grade.toMap(),
-      where: "id = ?",
-      whereArgs: [grade.id],
-    );
-  }
-
-  Future<void> deleteGrade(Grade grade) async {
-    final db = await database;
-
-    await db.delete(
-      'grades',
-      where: 'id = ?',
-      whereArgs: [grade.id],
-    );
-  }
-}
+List<Grade> _gradeList = [];
 
 class MyApp extends StatelessWidget {
   @override
@@ -92,29 +37,27 @@ class ExerciseResultsState extends State<ExerciseResults> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _biggerFont = const TextStyle(fontSize: 18.0);
 
-  Widget _buildSuggestions() {
+  Widget _buildSuggestions() { //unused
     return ListView.builder(
         padding: const EdgeInsets.all(16.0),
+        itemCount: _gradeList.length,
         itemBuilder: /*1*/ (context, i) {
           if (i.isOdd) return Divider(); /*2*/
 
           final index = i ~/ 2; /*3*/
-          return _buildRow();
+          return _buildRow(_gradeList[index]);
         });
   }
 
-  Widget _buildRow() {
+  Widget _buildRow(Grade grade) {
     return ListTile(
       title: Text(
-        'sth',
+        'id=${grade.id};right=${grade.right};wrong=${grade.wrong}',
         style: _biggerFont,
       ),
-      trailing: Icon(
-        Icons.favorite_border,
-      ),
-      onTap: () {
-        setState(() {});
-      },
+//      onTap: () {
+//        setState(() {});
+//      },
     );
   }
 
@@ -134,7 +77,7 @@ class ExerciseResultsState extends State<ExerciseResults> {
       appBar: AppBar(
         title: Text('Kids Learning'),
       ),
-      body: _buildSuggestions(),
+      body: _futureBuild(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _showDialog(context);
@@ -142,6 +85,29 @@ class ExerciseResultsState extends State<ExerciseResults> {
         child: Icon(Icons.add),
         backgroundColor: Colors.blue,
       ),
+    );
+  }
+
+  Widget _futureBuild() {
+    return FutureBuilder<List<Grade>>(
+      future: DBProvider.db.grades(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          _gradeList = snapshot.data;
+          print(_gradeList);
+          return ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: _gradeList.length * 2,
+              itemBuilder: /*1*/ (context, i) {
+                if (i.isOdd) return Divider(); /*2*/
+
+                final index = i ~/ 2; /*3*/
+                return _buildRow(_gradeList[index]);
+              });
+        } else {
+          return Center(child: CircularProgressIndicator(),);
+        }
+      },
     );
   }
 }
@@ -250,11 +216,20 @@ class _MyDialogState extends State<_MyDialog> {
       ),
       actions: <Widget>[
         FlatButton(
-          onPressed: () {
+          onPressed: () async {
             Navigator.of(context).pop();
-            Navigator.of(context).push(MaterialPageRoute(
+            final List<int> result = await Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => ExerciseMode(_choose, _number, _range),
             ));
+            if (result == null) return;
+            // todo: add to grade list
+            var grade = Grade(
+                id: 0, // not need.
+                right: result[0],
+                wrong: result[1],
+                millisecondsSinceEpoch: DateTime.now().millisecondsSinceEpoch
+            );
+            DBProvider.db.insertGrade(grade);
           },
           child: Text('确认'),
         ),

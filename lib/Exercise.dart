@@ -122,9 +122,13 @@ class ExerciseModeState extends State<ExerciseMode> {
     for (Quiz quiz in _list) {
       quiz.isRight ? ++right : ++wrong;
     }
-    _scaffoldKey.currentState.showSnackBar(SnackBar(
-      content: Text('right=$right; wrong=$wrong'),
-    ));
+//    _scaffoldKey.currentState.showSnackBar(SnackBar(
+//      content: Text('right=$right; wrong=$wrong'),
+//    ));
+    Navigator.pop(context, [
+      right,
+      wrong,
+    ]);
   }
 
   @override
