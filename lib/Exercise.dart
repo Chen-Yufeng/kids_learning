@@ -4,15 +4,16 @@ import 'package:kids_learning/Generator.dart';
 class Exercise extends StatelessWidget {
   final int _choose;
   final int _number;
+  final int _range;
 
-  Exercise(this._choose, this._number);
+  Exercise(this._choose, this._number, this._range);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: '练习模式',
       theme: ThemeData(primaryColor: Colors.white),
-      home: ExerciseMode(_choose, _number),
+      home: ExerciseMode(_choose, _number, _range),
     );
   }
 }
@@ -20,12 +21,13 @@ class Exercise extends StatelessWidget {
 class ExerciseMode extends StatefulWidget {
   final int _choose;
   final int _number;
+  final int _range;
 
-  ExerciseMode(this._choose, this._number);
+  ExerciseMode(this._choose, this._number, this._range);
 
   @override
   State<StatefulWidget> createState() {
-    return ExerciseModeState(_choose, _number);
+    return ExerciseModeState(_choose, _number, _range);
   }
 }
 
@@ -33,11 +35,30 @@ class ExerciseModeState extends State<ExerciseMode> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final int _choose;
   final int _number;
+  final int _range;
   List<Quiz> _list;
   String operator;
   final _font = const TextStyle(fontSize: 18.0);
 
-  ExerciseModeState(this._choose, this._number) {
+  void _onLoading() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: new Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              new CircularProgressIndicator(),
+              new Text("Loading"),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  ExerciseModeState(this._choose, this._number, this._range) {
     switch (_choose) {
       case 1:
         operator = '+';
@@ -54,8 +75,10 @@ class ExerciseModeState extends State<ExerciseMode> {
       default:
         operator = 'Error';
     }
+    _onLoading();
     _list = ExerciseGenerator.generate(
-        _choose, _number, 100); // todo: change hardcode
+        _choose, _number, _range); // todo: change hardcode
+    Navigator.pop(context);
 //    print(_list);
   }
 

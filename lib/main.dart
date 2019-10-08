@@ -2,11 +2,74 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import 'package:flutter/material.dart';
-import 'package:english_words/english_words.dart';
-import 'package:flutter/material.dart' as prefix0;
 import 'package:kids_learning/Exercise.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 
-void main() => runApp(MyApp());
+import 'Result.dart';
+
+void main() async {
+  _initDatabase();
+
+  runApp(MyApp());
+}
+
+void _initDatabase() async {
+  final Future<Database> database = openDatabase(
+    join(await getDatabasesPath(), 'results.db'),
+    onCreate: (db, version) {
+      return db.execute(
+          "CREATE TABLE grades(id INTEGER PRIMARY KEY, right INTEGER, wrong INTEGER, milliseconds_since_epoch INTEGER)");
+    },
+    version: 1,
+  );
+
+  Future<void> insertResult(Grade result) async {
+    final Database db = await database;
+
+    await db.insert(
+      'grades',
+      result.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<List<Grade>> grades() async {
+    final Database db = await database;
+
+    final List<Map<String, dynamic>> maps = await db.query('grades');
+
+    return List.generate(maps.length, (i) {
+      return Grade(
+        id: maps[i]['id'],
+        right: maps[i]['right'],
+        wrong: maps[i]['wrong'],
+        millisecondsSinceEpoch: maps[i]['milliseconds_since_epoch'],
+      );
+    });
+  }
+
+  Future<void> updateGrade(Grade grade) async {
+    final db = await database;
+
+    await db.update(
+      'grades',
+      grade.toMap(),
+      where: "id = ?",
+      whereArgs: [grade.id],
+    );
+  }
+
+  Future<void> deleteGrade(Grade grade) async {
+    final db = await database;
+
+    await db.delete(
+      'grades',
+      where: 'id = ?',
+      whereArgs: [grade.id],
+    );
+  }
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -25,10 +88,7 @@ class ExerciseResults extends StatefulWidget {
   ExerciseResultsState createState() => ExerciseResultsState();
 }
 
-
 class ExerciseResultsState extends State<ExerciseResults> {
-  final _suggestions = <WordPair>[];
-  final _saved = Set<WordPair>();
   final _biggerFont = const TextStyle(fontSize: 18.0);
 
   Widget _buildSuggestions() {
@@ -38,66 +98,31 @@ class ExerciseResultsState extends State<ExerciseResults> {
           if (i.isOdd) return Divider(); /*2*/
 
           final index = i ~/ 2; /*3*/
-          if (index >= _suggestions.length) {
-            _suggestions.addAll(generateWordPairs().take(10)); /*4*/
-          }
-          return _buildRow(_suggestions[index]);
+          return _buildRow();
         });
   }
 
-  Widget _buildRow(WordPair pair) {
-    final bool alreadySaved = _saved.contains(pair);
+  Widget _buildRow() {
     return ListTile(
       title: Text(
-        pair.asPascalCase,
+        'sth',
         style: _biggerFont,
       ),
       trailing: Icon(
-        alreadySaved ? Icons.favorite : Icons.favorite_border,
-        color: alreadySaved ? Colors.red : null,
+        Icons.favorite_border,
       ),
       onTap: () {
-        setState(() {
-          if (alreadySaved) {
-            _saved.remove(pair);
-          } else {
-            _saved.add(pair);
-          }
-        });
+        setState(() {});
       },
     );
   }
 
-  void _pushSaved() { // todo: del
-    Navigator.of(context)
-        .push(MaterialPageRoute<void>(builder: (BuildContext context) {
-      final Iterable<ListTile> tiles = _saved.map((WordPair pair) {
-        return ListTile(
-          title: Text(
-            pair.asPascalCase,
-            style: _biggerFont,
-          ),
-        );
-      });
-      final List<Widget> divided = ListTile.divideTiles(
-        context: context,
-        tiles: tiles,
-      ).toList();
-      return Scaffold(
-        appBar: AppBar(
-          title: Text('Saved Suggestions'),
-        ),
-        body: ListView(children: divided),
-      );
-    }));
-  }
-
-  void _showDialog() {
+  void _showDialog(BuildContext context) {
     showDialog(
-        context: context,
-        builder: (context) {
-          return _MyDialog();
-        },
+      context: context,
+      builder: (context) {
+        return _MyDialog();
+      },
     );
   }
 
@@ -106,17 +131,11 @@ class ExerciseResultsState extends State<ExerciseResults> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Kids Learning'),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.list),
-            onPressed: _pushSaved,
-          )
-        ],
       ),
       body: _buildSuggestions(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showDialog();
+          _showDialog(context);
         },
         child: Icon(Icons.add),
         backgroundColor: Colors.blue,
@@ -126,7 +145,6 @@ class ExerciseResultsState extends State<ExerciseResults> {
 }
 
 class _MyDialog extends StatefulWidget {
-
   @override
   _MyDialogState createState() => _MyDialogState();
 }
@@ -134,6 +152,7 @@ class _MyDialog extends StatefulWidget {
 class _MyDialogState extends State<_MyDialog> {
   int _choose = 0;
   int _number = 30;
+  int _range = 50;
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +167,10 @@ class _MyDialogState extends State<_MyDialog> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               IconButton(
-                icon: Icon(Icons.add, size: 40.0,),
+                icon: Icon(
+                  Icons.add,
+                  size: 40.0,
+                ),
                 color: _choose == 1 ? Colors.blue : null,
                 onPressed: () {
                   setState(() {
@@ -157,7 +179,10 @@ class _MyDialogState extends State<_MyDialog> {
                 },
               ),
               IconButton(
-                icon: Icon(Icons.remove, size: 40.0,),
+                icon: Icon(
+                  Icons.remove,
+                  size: 40.0,
+                ),
                 color: _choose == 2 ? Colors.blue : null,
                 onPressed: () {
                   setState(() {
@@ -166,7 +191,10 @@ class _MyDialogState extends State<_MyDialog> {
                 },
               ),
               IconButton(
-                icon: Icon(Icons.clear, size: 40.0,),
+                icon: Icon(
+                  Icons.clear,
+                  size: 40.0,
+                ),
                 color: _choose == 3 ? Colors.blue : null,
                 onPressed: () {
                   setState(() {
@@ -175,7 +203,10 @@ class _MyDialogState extends State<_MyDialog> {
                 },
               ),
               IconButton(
-                icon: Icon(Icons.vertical_align_center, size: 40.0,),
+                icon: Icon(
+                  Icons.vertical_align_center,
+                  size: 40.0,
+                ),
                 color: _choose == 4 ? Colors.blue : null,
                 onPressed: () {
                   setState(() {
@@ -184,6 +215,20 @@ class _MyDialogState extends State<_MyDialog> {
                 },
               ),
             ],
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8.0, 16.0, 8.0, 0),
+            child: Text('范围: 0 ~ $_range'),
+          ),
+          Slider(
+            value: _range.toDouble(),
+            onChanged: (newValue) {
+              setState(() {
+                _range = newValue.toInt();
+              });
+            },
+            min: 1.0,
+            max: 100.0,
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(8.0, 16.0, 8.0, 0),
@@ -204,9 +249,9 @@ class _MyDialogState extends State<_MyDialog> {
       actions: <Widget>[
         FlatButton(
           onPressed: () {
-            prefix0.Navigator.of(context).pop();
+            Navigator.of(context).pop();
             Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => ExerciseMode(_choose, _number),
+              builder: (context) => ExerciseMode(_choose, _number, _range),
             ));
           },
           child: Text('确认'),
@@ -220,5 +265,4 @@ class _MyDialogState extends State<_MyDialog> {
       ],
     );
   }
-
 }
