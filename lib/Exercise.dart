@@ -75,10 +75,10 @@ class ExerciseModeState extends State<ExerciseMode> {
       default:
         operator = 'Error';
     }
-    _onLoading();
+//    _onLoading();
     _list = ExerciseGenerator.generate(
         _choose, _number, _range); // todo: change hardcode
-    Navigator.pop(context);
+//    Navigator.pop(context);
 //    print(_list);
   }
 

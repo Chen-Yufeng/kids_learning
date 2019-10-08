@@ -89,6 +89,7 @@ class ExerciseResults extends StatefulWidget {
 }
 
 class ExerciseResultsState extends State<ExerciseResults> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _biggerFont = const TextStyle(fontSize: 18.0);
 
   Widget _buildSuggestions() {
@@ -129,6 +130,7 @@ class ExerciseResultsState extends State<ExerciseResults> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text('Kids Learning'),
       ),
@@ -150,7 +152,7 @@ class _MyDialog extends StatefulWidget {
 }
 
 class _MyDialogState extends State<_MyDialog> {
-  int _choose = 0;
+  int _choose = 1;
   int _number = 30;
   int _range = 50;
 

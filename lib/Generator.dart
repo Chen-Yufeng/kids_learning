@@ -26,7 +26,7 @@ class ExerciseGenerator {
      Quiz quiz = new Quiz();
      quiz.isRight = false;
      quiz.answer = random.nextInt(max);
-     quiz.first = random.nextInt(quiz.answer);
+     quiz.first = random.nextInt(quiz.answer + 1);
      quiz.second = quiz.answer - quiz.first;
      list.add(quiz);
     }
@@ -42,7 +42,7 @@ class ExerciseGenerator {
       Quiz quiz = new Quiz();
       quiz.isRight = false;
       quiz.first = random.nextInt(max);
-      quiz.second = random.nextInt(quiz.first);
+      quiz.second = random.nextInt(quiz.first + 1);
       quiz.answer = quiz.first - quiz.second;
       list.add(quiz);
     }
