@@ -10,11 +10,11 @@ import 'package:path/path.dart';
 
 import 'Result.dart';
 
+Future<List<Grade>> _gradeList;
+
 void main() async {
   runApp(MyApp());
 }
-
-List<Grade> _gradeList = [];
 
 class MyApp extends StatelessWidget {
   @override
@@ -37,16 +37,10 @@ class ExerciseResultsState extends State<ExerciseResults> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _biggerFont = const TextStyle(fontSize: 18.0);
 
-  Widget _buildSuggestions() { //unused
-    return ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: _gradeList.length,
-        itemBuilder: /*1*/ (context, i) {
-          if (i.isOdd) return Divider(); /*2*/
-
-          final index = i ~/ 2; /*3*/
-          return _buildRow(_gradeList[index]);
-        });
+  @override
+  void initState() {
+    super.initState();
+    _gradeList = DBProvider.db.grades();
   }
 
   Widget _buildRow(Grade grade) {
@@ -61,13 +55,16 @@ class ExerciseResultsState extends State<ExerciseResults> {
     );
   }
 
-  void _showDialog(BuildContext context) {
-    showDialog(
+  void _showDialog(BuildContext context) async {
+    Grade grade = await showDialog(
       context: context,
       builder: (context) {
         return _MyDialog();
       },
     );
+    setState(() {
+      _gradeList = DBProvider.db.grades();
+    });
   }
 
   @override
@@ -90,19 +87,17 @@ class ExerciseResultsState extends State<ExerciseResults> {
 
   Widget _futureBuild() {
     return FutureBuilder<List<Grade>>(
-      future: DBProvider.db.grades(),
+      future: _gradeList,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          _gradeList = snapshot.data;
-          print(_gradeList);
           return ListView.builder(
               padding: const EdgeInsets.all(16.0),
-              itemCount: _gradeList.length * 2,
+              itemCount: snapshot.data.length * 2,
               itemBuilder: /*1*/ (context, i) {
                 if (i.isOdd) return Divider(); /*2*/
 
                 final index = i ~/ 2; /*3*/
-                return _buildRow(_gradeList[index]);
+                return _buildRow(snapshot.data[index]);
               });
         } else {
           return Center(child: CircularProgressIndicator(),);
@@ -217,7 +212,6 @@ class _MyDialogState extends State<_MyDialog> {
       actions: <Widget>[
         FlatButton(
           onPressed: () async {
-            Navigator.of(context).pop();
             final List<int> result = await Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => ExerciseMode(_choose, _number, _range),
             ));
@@ -229,7 +223,10 @@ class _MyDialogState extends State<_MyDialog> {
                 wrong: result[1],
                 millisecondsSinceEpoch: DateTime.now().millisecondsSinceEpoch
             );
-            DBProvider.db.insertGrade(grade);
+            DBProvider.db.insertGrade(grade)
+            .whenComplete(() {
+              Navigator.pop(context, grade);
+            });
           },
           child: Text('确认'),
         ),
