@@ -19,6 +19,11 @@ class DBProvider {
     return _database;
   }
 
+  Future<void> dispose() async {
+    await _database.close();
+    _database = null;
+  }
+
   _initDatabase() async {
 //    print(await getDatabasesPath());
     final Future<Database> database = openDatabase(

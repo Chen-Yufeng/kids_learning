@@ -4,9 +4,6 @@
 import 'package:flutter/material.dart';
 import 'package:kids_learning/Database.dart';
 import 'package:kids_learning/Exercise.dart';
-import 'package:kids_learning/Generator.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 
 import 'Result.dart';
 
@@ -41,6 +38,12 @@ class ExerciseResultsState extends State<ExerciseResults> {
   void initState() {
     super.initState();
     _gradeList = DBProvider.db.grades();
+  }
+
+  @override
+  void dispose() {
+    DBProvider.db.dispose();
+    super.dispose();
   }
 
   Widget _buildRow(Grade grade) {
