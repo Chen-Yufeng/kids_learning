@@ -18,6 +18,31 @@ class ExerciseGenerator {
     }
   }
 
+  static Quiz processForSQLite(Quiz quiz, int choose) {
+    var date = DateTime.now();
+    switch (choose) {
+      case 1:
+        quiz.operator = '+';
+        break;
+      case 2:
+        quiz.operator = '-';
+        break;
+      case 3:
+        quiz.operator = '×';
+        break;
+      case 4:
+        quiz.operator = '÷';
+        break;
+      default:
+        break;
+    }
+    quiz.year = date.year;
+    quiz.month = date.month;
+    quiz.day = date.day;
+
+    return quiz;
+  }
+
   static List<Quiz> generateAddition(int number, int max) {
     List<Quiz> list = new List();
     var random = new Random();
@@ -28,7 +53,7 @@ class ExerciseGenerator {
      quiz.answer = random.nextInt(max);
      quiz.first = random.nextInt(quiz.answer + 1);
      quiz.second = quiz.answer - quiz.first;
-     list.add(quiz);
+     list.add(processForSQLite(quiz, 1));
     }
 
     return list;
@@ -44,7 +69,7 @@ class ExerciseGenerator {
       quiz.first = random.nextInt(max);
       quiz.second = random.nextInt(quiz.first + 1);
       quiz.answer = quiz.first - quiz.second;
-      list.add(quiz);
+      list.add(processForSQLite(quiz, 2));
     }
 
     return list;
@@ -59,6 +84,7 @@ class ExerciseGenerator {
       quiz.first = _mul[index++];
       quiz.second = _mul[index++];
       quiz.answer = answer;
+      processForSQLite(quiz, 3);
       all.add(quiz);
       if (_mul[index] < 0) {
         answer = _mul[index++] * -1;
@@ -84,6 +110,7 @@ class ExerciseGenerator {
       quiz.first = answer;
       quiz.second = _mul[index++];
       quiz.answer = _mul[index++];
+      processForSQLite(quiz, 4);
       all.add(quiz);
       if (_mul[index] < 0) {
         answer = _mul[index++] * -1;
@@ -102,9 +129,30 @@ class ExerciseGenerator {
 }
 
 class Quiz {
+  int id;
   int first;
   int second;
   int answer;
+  String operator;
+  int year;
+  int month;
+  int day;
   int input;
   bool isRight = false;
+
+
+  Quiz({this.id, this.first, this.second, this.answer, this.operator, this.year, this.month, this.day});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id' : id,
+      'first' : first,
+      'second' : second,
+      'answer' : answer,
+      'operator' : operator,
+      'year' : year,
+      'month' : month,
+      'day' : day,
+    };
+  }
 }

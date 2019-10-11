@@ -1,13 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'Result.dart';
 
-class DBProvider {
-  DBProvider._();
+// todo: need dispose?
+class ResultDBProvider {
+  ResultDBProvider._();
 
-  static final DBProvider db = DBProvider._();
+  static final ResultDBProvider db = ResultDBProvider._();
 
   Database _database;
 

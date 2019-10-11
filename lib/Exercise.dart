@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kids_learning/Generator.dart';
+import 'package:kids_learning/WrongDatabase.dart';
 
 class Exercise extends StatelessWidget {
   final int _choose;
@@ -77,7 +78,7 @@ class ExerciseModeState extends State<ExerciseMode> {
     }
 //    _onLoading();
     _list = ExerciseGenerator.generate(
-        _choose, _number, _range); // todo: change hardcode
+        _choose, _number, _range);
 //    Navigator.pop(context);
 //    print(_list);
   }
@@ -120,7 +121,12 @@ class ExerciseModeState extends State<ExerciseMode> {
     int right = 0;
     int wrong = 0;
     for (Quiz quiz in _list) {
-      quiz.isRight ? ++right : ++wrong;
+      if (quiz.isRight) {
+        ++right;
+      } else {
+        ++wrong;
+        WrongDBProvider.db.insertQuiz(quiz);
+      }
     }
 //    _scaffoldKey.currentState.showSnackBar(SnackBar(
 //      content: Text('right=$right; wrong=$wrong'),
