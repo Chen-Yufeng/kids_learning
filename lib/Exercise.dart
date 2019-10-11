@@ -120,17 +120,16 @@ class ExerciseModeState extends State<ExerciseMode> {
   void _submit() {
     int right = 0;
     int wrong = 0;
+    List<Quiz> wrongList = [];
     for (Quiz quiz in _list) {
       if (quiz.isRight) {
         ++right;
       } else {
         ++wrong;
-        WrongDBProvider.db.insertQuiz(quiz);
+        wrongList.add(quiz);
       }
     }
-//    _scaffoldKey.currentState.showSnackBar(SnackBar(
-//      content: Text('right=$right; wrong=$wrong'),
-//    ));
+    WrongDBProvider.db.insertQuizList(wrongList);
     Navigator.pop(context, [
       right,
       wrong,

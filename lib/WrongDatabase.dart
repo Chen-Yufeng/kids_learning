@@ -52,6 +52,22 @@ class WrongDBProvider {
     );
   }
 
+  Future<void> insertQuizList(List<Quiz> list) async {
+    final Database db = await database;
+    for (Quiz quiz in list) {
+      var map = quiz.toMap();
+      var table = await db.rawQuery("SELECT MAX(id)+1 as id FROM wrong");
+      int id = table.first["id"];
+      map.remove("id");
+      map["id"] = id;
+      await db.insert(
+        'wrong',
+        map,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+  }
+
   Future<List<Quiz>> wrong() async {
     final Database db = await database;
 
