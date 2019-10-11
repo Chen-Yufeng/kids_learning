@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:kids_learning/Generator.dart';
 import 'package:kids_learning/WrongDatabase.dart';
 
@@ -40,6 +41,7 @@ class ExerciseModeState extends State<ExerciseMode> {
   List<Quiz> _list;
   String operator;
   final _font = const TextStyle(fontSize: 18.0);
+  final List<TextEditingController> _controllers = [];
 
   void _onLoading() {
     showDialog(
@@ -79,6 +81,9 @@ class ExerciseModeState extends State<ExerciseMode> {
 //    _onLoading();
     _list = ExerciseGenerator.generate(
         _choose, _number, _range);
+    for (int i = 0; i < _number; ++i) {
+      _controllers.add(TextEditingController(text: ''));
+    }
 //    Navigator.pop(context);
 //    print(_list);
   }
@@ -90,12 +95,12 @@ class ExerciseModeState extends State<ExerciseMode> {
         if (i.isOdd) return Divider();
 
         final index = i ~/ 2;
-        return _buildRow(_list[index]);
+        return _buildRow(_list[index], index);
       },
     );
   }
 
-  Widget _buildRow(Quiz quiz) {
+  Widget _buildRow(Quiz quiz, int index) {
     return ListTile(
       title: Text(
         '${quiz.first} $operator ${quiz.second} =',
@@ -104,6 +109,7 @@ class ExerciseModeState extends State<ExerciseMode> {
       trailing: Container(
           width: 100.0,
           child: TextField(
+            controller: _controllers[index],
             onChanged: (newString) {
               quiz.input = int.parse(newString);
               if (quiz.input == quiz.answer) {
@@ -112,7 +118,8 @@ class ExerciseModeState extends State<ExerciseMode> {
                 quiz.isRight = false;
               }
             },
-            keyboardType: TextInputType.number, // todo: only numbers?
+            keyboardType: TextInputType.number,
+            inputFormatters: [WhitelistingTextInputFormatter.digitsOnly],
           )),
     );
   }
